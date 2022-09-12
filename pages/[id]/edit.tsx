@@ -71,6 +71,14 @@ const ContactEdit = () => {
           };
         }),
       );
+      setIsUpdatingPhone(
+        dataSubsContact.contact_by_pk.phones.map((phone) => {
+          return {
+            id: phone.id,
+            isUpdating: false,
+          };
+        }),
+      );
     }
   }, [dataSubsContact, errorSubsContact]);
 
@@ -91,7 +99,18 @@ const ContactEdit = () => {
     e: React.ChangeEvent<HTMLInputElement>,
     id: number,
   ) => {
-    setIsUpdatingPhone(true);
+    setIsUpdatingPhone(
+      [...isUpdatingPhone].map((phone) => {
+        if (phone.id === id) {
+          return {
+            ...phone,
+            isUpdating: true,
+          };
+        }
+        return phone;
+      }),
+    );
+
     console.log(isUpdatingPhone);
     setInputPhone(
       [...inputPhone].map((phone) => {
@@ -109,7 +128,14 @@ const ContactEdit = () => {
   };
 
   const { updatePhone, loadingUpdatePhone } = useUpdatePhone();
-  const [isUpdatingPhone, setIsUpdatingPhone] = useState(false);
+  const [isUpdatingPhone, setIsUpdatingPhone] = useState(
+    inputPhone.map((phone) => {
+      return {
+        id: phone.id,
+        isUpdating: false,
+      };
+    }),
+  );
   const handleEditPhone = (
     e: React.MouseEvent<HTMLButtonElement>,
     id: number,
@@ -130,7 +156,17 @@ const ContactEdit = () => {
   };
 
   const handleCancelEditPhone = (id: number) => {
-    setIsUpdatingPhone(false);
+    setIsUpdatingPhone(
+      [...isUpdatingPhone].map((phone) => {
+        if (phone.id === id) {
+          return {
+            ...phone,
+            isUpdating: false,
+          };
+        }
+        return phone;
+      }),
+    );
     setInputPhone(
       [...inputPhone].map((phone) => {
         if (phone.id === id) {
@@ -153,8 +189,7 @@ const ContactEdit = () => {
     input: tw`w-full bg-transparent border-none text-white text-lg focus:outline-none`,
     buttons: ({ isUpdate }: { isUpdate: boolean }) => [
       tw`flex justify-between mx-auto w-3/4 transition-all duration-300 ease-in-out opacity-0`,
-      isUpdate &&
-        tw`mt-4 opacity-100 w-3/4`,
+      isUpdate && tw`mt-4 opacity-100 w-3/4`,
     ],
     button: tw`px-4 hover:bg-gray-700 rounded-lg py-1 text-white font-semibold`,
     phone: ({
@@ -206,7 +241,8 @@ const ContactEdit = () => {
           <div
             css={styles.phone({
               lastChild: key === inputPhone.length - 1,
-              isUpdate: isUpdatingPhone,
+              isUpdate: isUpdatingPhone.find((selected) => selected.id === phone.id)
+                ?.isUpdating!,
             })}
             key={key}
           >
@@ -219,20 +255,28 @@ const ContactEdit = () => {
               name="number"
               onChange={(e) => handleInputPhone(e, phone.id)}
             />
-            <div css={styles.buttons({ isUpdate: isUpdatingPhone })}>
-              <button
-                css={styles.button}
-                onClick={() => handleCancelEditPhone(phone.id)}
+            {isUpdatingPhone.find((selected) => selected.id === phone.id) && (
+              <div
+                css={styles.buttons({
+                  isUpdate: isUpdatingPhone.find(
+                    (phone) => phone.id === phone.id,
+                  )?.isUpdating!,
+                })}
               >
-                Cancel
-              </button>
-              <button
-                css={styles.button}
-                onClick={(e) => handleEditPhone(e, phone.id)}
-              >
-                Save
-              </button>
-            </div>
+                <button
+                  css={styles.button}
+                  onClick={() => handleCancelEditPhone(phone.id)}
+                >
+                  Cancel
+                </button>
+                <button
+                  css={styles.button}
+                  onClick={(e) => handleEditPhone(e, phone.id)}
+                >
+                  Save
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -22,7 +22,13 @@ const wsLink =
           },
         }),
       )
-    : require("ws");
+    : new HttpLink({
+        uri: "https://phonebook-tokopedia.hasura.app/v1/graphql",
+        credentials: "same-origin",
+        headers: {
+          "x-hasura-admin-secret": process.env.NEXT_PUBLIC_HASURA_SECRET!,
+        },
+      });
 
 const httpLink = new HttpLink({
   uri: "https://phonebook-tokopedia.hasura.app/v1/graphql",
