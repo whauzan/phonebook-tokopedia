@@ -7,4 +7,5 @@ export interface Contact {
   last_name: string;
   phones: Phone[];
   contact_by_pk?: Contact;
+  isFavorite?: boolean;
 }

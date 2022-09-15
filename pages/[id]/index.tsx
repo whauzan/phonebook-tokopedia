@@ -1,41 +1,56 @@
 import Head from "next/head";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import tw from "twin.macro";
-import useGetContact from "../../hooks/useGetContact";
+import { ContactContext } from "../../context/ContactContext";
+import useDeleteContact from "../../hooks/useDeleteContact";
 import { Contact } from "../../interfaces/contact";
 
 const ContactDetail = () => {
-  const { query } = useRouter();
-
+  const router = useRouter();
+  const contactList = useContext(ContactContext);
   const [contact, setContact] = useState<Contact>();
-  const { loadingGetContact, errorGetContact, dataGetContact } = useGetContact(
-    parseInt(query.id as string),
-  );
 
   useEffect(() => {
-    if (dataGetContact) {
-      setContact(dataGetContact.contact_by_pk);
-    }
-  }, [dataGetContact]);
+    setContact(
+      contactList.find(
+        (element) => element.id === parseInt(router.query.id as string),
+      ),
+    );
+  }, [contactList]);
+
+  const { deleteContact, loadingDeleteContact } = useDeleteContact();
 
   const options = [
     {
       favorite: false,
       icon: "/Delete.svg",
       alt: "Delete Icon",
+      onClick: () =>
+        deleteContact({ variables: { id: contact?.id } }).then(() => {
+          router.replace("/");
+        }),
     },
     {
       favorite: false,
       icon: "/Edit.svg",
       alt: "Edit Icon",
+      onClick: () => router.push(`/${contact?.id}/edit`),
     },
     {
       favorite: true,
-      icon: "/Favorite.svg",
+      icon: contact?.isFavorite ? "/Favorite-fill.svg": "/Favorite.svg",
       alt: "Favorite Icon",
+      onClick: async () => {
+        contactList.map((element) => {
+          if (element.id === contact?.id) {
+            element.isFavorite = !element.isFavorite;
+          }
+        });
+        localStorage.setItem("contactList", JSON.stringify(contactList));
+        router.replace(router.asPath);
+      },
     },
   ];
 
@@ -55,8 +70,8 @@ const ContactDetail = () => {
     icon: ({ favorite }: { favorite: boolean }) => [
       !favorite &&
         tw`invert sepia saturate-0 brightness-[1.04] contrast-[1.02]`,
-      //   favorite &&
-      //     tw`invert-[0.72] sepia-[0.69] saturate-[4.905] hue-rotate-[121deg] brightness-[0.94] contrast-[0.87]`,
+        favorite &&
+          tw`invert-[0.72] sepia-[0.69] saturate-[4.905] hue-rotate-[121deg] brightness-[0.94] contrast-[0.87]`,
     ],
   };
 
@@ -78,36 +93,19 @@ const ContactDetail = () => {
         </div>
         <div css={styles.options}>
           {options.map((option, key) => (
-            <>
-              {option.alt.includes("Edit") ? (
-                <Link href={`/${query.id}/edit`} key={key}>
-                  <div
-                    css={styles.optionContainer({ favorite: option.favorite })}
-                  >
-                    <Image
-                      css={styles.icon({ favorite: option.favorite })}
-                      src={option.icon}
-                      alt={option.alt}
-                      width={20}
-                      height={20}
-                    />
-                  </div>
-                </Link>
-              ) : (
-                <div
-                  css={styles.optionContainer({ favorite: option.favorite })}
-                  key={key}
-                >
-                  <Image
-                    css={styles.icon({ favorite: option.favorite })}
-                    src={option.icon}
-                    alt={option.alt}
-                    width={20}
-                    height={20}
-                  />
-                </div>
-              )}
-            </>
+            <div
+              css={styles.optionContainer({ favorite: option.favorite })}
+              key={key}
+              onClick={option.onClick}
+            >
+              <Image
+                css={styles.icon({ favorite: option.favorite })}
+                src={option.icon}
+                alt={option.alt}
+                width={20}
+                height={20}
+              />
+            </div>
           ))}
         </div>
       </div>

@@ -25,15 +25,7 @@ const Dropdown = ({ items, isOpen, selectedContact }: DropdownProps) => {
       <div css={styles.container({ isOpen })}>
         {items.map((item) => (
           <div css={styles.item} onClick={item.onClick} key={item.title}>
-            {item.title !== "Delete" ? (
-              <Link
-                href={`/${selectedContact.id}`}
-              >
-                <p>{item.title}</p>
-              </Link>
-            ) : (
-              <p>{item.title}</p>
-            )}
+            <p>{item.title}</p>
           </div>
         ))}
       </div>

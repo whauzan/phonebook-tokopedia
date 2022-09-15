@@ -5,24 +5,36 @@ export const ADD_CONTACT = gql`
     $created_at: timestamptz!
     $first_name: String!
     $last_name: String!
-    $phones: [phone_insert_input!]!
   ) {
     insert_contact(
       objects: {
         created_at: $created_at
         first_name: $first_name
         last_name: $last_name
-        phones: { data: $phones }
       }
     ) {
       returning {
-        created_at
-        first_name
         id
-        last_name
-        phones {
-          number
-        }
+      }
+    }
+  }
+`;
+
+export const DELETE_CONTACT = gql`
+  mutation DeleteContact($id: Int!) {
+    delete_contact_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+export const ADD_PHONE = gql`
+  mutation AddPhone($objects: [phone_insert_input!]!) {
+    insert_phone(objects: $objects) {
+      returning {
+        id
+        number
+        contact_id
       }
     }
   }

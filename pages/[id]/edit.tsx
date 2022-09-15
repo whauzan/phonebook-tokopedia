@@ -2,7 +2,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import tw from "twin.macro";
-import useGetContact from "../../hooks/useGetContact";
 import useSubsContact from "../../hooks/useSubsContact";
 import useUpdatePhone from "../../hooks/useUpdatePhone";
 import { Contact } from "../../interfaces/contact";
@@ -16,11 +15,6 @@ const ContactEdit = () => {
     first_name: string;
     last_name: string;
   }
-
-  // let defaultInputName: InputName = {
-  //   first_name: "",
-  //   last_name: "",
-  // };
 
   const [defaultInputName, setDefaultInputName] = useState<InputName>({
     first_name: "",

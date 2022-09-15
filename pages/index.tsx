@@ -1,26 +1,32 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import tw from "twin.macro";
 import SearchBar from "../components/SearchBar";
 import ContactList from "../components/Contact";
 import Pagination from "../components/Pagination";
 import AddContactButton from "../components/AddContactButton";
 import { Contact } from "../interfaces/contact";
-import client from "../apollo-client";
-import { GET_CONTACT_LIST } from "../graphql/query";
+import { ContactContext } from "../context/ContactContext";
 
-const Home: NextPage = ({ data }: any) => {
+const Home: NextPage = () => {
+  const defaultData = useContext(ContactContext);
+
   const [input, setInput] = useState("");
-  const [defaultData] = useState<Contact[]>(data.data.contact);
   const [dataContact, setDataContact] = useState<Contact[]>(defaultData);
+  useEffect(() => {
+    setDataContact(defaultData);
+  }, [defaultData]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [contactsPerPage] = useState(10);
-  
+
   const indexOfLastPost = currentPage * contactsPerPage;
   const indexOfFirstPost = indexOfLastPost - contactsPerPage;
-  const currentContacts = dataContact.slice(indexOfFirstPost, indexOfLastPost);
+  const currentContacts = dataContact
+    .filter((element) => !element.isFavorite)
+    .slice(indexOfFirstPost, indexOfLastPost);
 
   // Change page
   const paginateFront = () => setCurrentPage(currentPage + 1);
@@ -67,14 +73,23 @@ const Home: NextPage = ({ data }: any) => {
 
       <main css={styles.main}>
         <div tw="mb-4">
-          <h2 css={styles.subtitle}>{`Favorites (10)`}</h2>
+          <h2 css={styles.subtitle}>{`Favorites (${
+            dataContact.filter((element) => element.isFavorite).length
+          })`}</h2>
+          <ContactList
+            data={dataContact.filter((element) => element.isFavorite)}
+          />
         </div>
         <div tw="mb-4">
-          <h2 css={styles.subtitle}>{`Contacts (${dataContact.length})`}</h2>
+          <h2 css={styles.subtitle}>{`Contacts (${
+            dataContact.filter((element) => !element.isFavorite).length
+          })`}</h2>
           <ContactList data={currentContacts} />
           <Pagination
             contactsPerPage={contactsPerPage}
-            totalContacts={dataContact.length}
+            totalContacts={
+              dataContact.filter((element) => !element.isFavorite).length
+            }
             paginateBack={paginateBack}
             paginateFront={paginateFront}
             currentPage={currentPage}
@@ -89,15 +104,3 @@ const Home: NextPage = ({ data }: any) => {
 };
 
 export default Home;
-
-export const getServerSideProps = async () => {
-  const data = await client.query({
-    query: GET_CONTACT_LIST,
-  });
-
-  return {
-    props: {
-      data: data,
-    },
-  };
-};
